@@ -23,6 +23,8 @@ int main()
 
     sf::Clock clock;
 
+    sf::Time elapsed;
+
     if (!font.loadFromFile("resources/arial.ttf"))
     {
         std::cout << "Couldn't load font arial.ttf";
@@ -37,11 +39,11 @@ int main()
 
     while (rootWin.isOpen())
     {
-        sf::Time elapsed = clock.getElapsedTime();
+        elapsed = clock.getElapsedTime();
 
         //std::cout << elapsed.asMilliseconds() << "\n";
 
-        if(elapsed.asMilliseconds() == 100)
+        if(elapsed.asMilliseconds() >= 80)
         {
             snake.at(0).move(snakeVelocityX, snakeVelocityY);
             clock.restart();
@@ -99,6 +101,12 @@ int main()
                         // rootWin.display();
                     }
                     text.setCharacterSize(24); // in pixels, not points!
+                }
+                break;
+
+                case (sf::Keyboard::C):
+                {
+                    snake.at(0).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (squareSize.x / 2), (rootWin.getSize().y / 2) - (squareSize.y / 2)));
                 }
                 break;
 
