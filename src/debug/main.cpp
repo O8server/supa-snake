@@ -16,10 +16,10 @@ int main()
     sf::Text text;
 
     sf::Vector2f squareSize = {20.f, 20.f};
-    
-    
 
-    sf::RectangleShape snake(squareSize);
+    std::vector<sf::RectangleShape> snake = {sf::RectangleShape(squareSize)};
+
+    //sf::RectangleShape snake[1] = {sf::RectangleShape(squareSize)};
 
     sf::Clock clock;
 
@@ -32,24 +32,23 @@ int main()
     float snakeVelocityX = 0.f;
     float snakeVelocityY = 0.f;
 
-    snake.setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (squareSize.x / 2), (rootWin.getSize().y / 2) - (squareSize.y / 2)));
-    snake.setFillColor(sf::Color::Green);
+    snake.at(0).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (squareSize.x / 2), (rootWin.getSize().y / 2) - (squareSize.y / 2)));
+    snake.at(0).setFillColor(sf::Color::Green);
 
     while (rootWin.isOpen())
     {
-        // sf::Time elapsed = clock.getElapsedTime();
+        sf::Time elapsed = clock.getElapsedTime();
 
-        // std::cout << elapsed.asMilliseconds() << "\n";
+        //std::cout << elapsed.asMilliseconds() << "\n";
 
-        // if(elapsed.asMilliseconds() == 100)
-        // {
-        //     snake.move(snakeVelocityX, snakeVelocityY);
-        //     clock.restart();
-        // }
+        if(elapsed.asMilliseconds() == 100)
+        {
+            snake.at(0).move(snakeVelocityX, snakeVelocityY);
+            clock.restart();
+        }
 
-        snake.move(snakeVelocityX, snakeVelocityY);
+        //snake.at(0).move(snakeVelocityX, snakeVelocityY);
         
-
 
         sf::Event event;
 
@@ -108,7 +107,7 @@ int main()
                     squareSize.x += 1;
                     squareSize.y += 1;
 
-                    snake.setSize(squareSize);
+                    snake.at(0).setSize(squareSize);
                 }
                 break;
 
@@ -120,14 +119,14 @@ int main()
                         squareSize.y -= 1;
                     }
 
-                    snake.setSize(squareSize);
+                    snake.at(0).setSize(squareSize);
                 }
                 break;
 
                 case (sf::Keyboard::Right):
                 {
-                    //snake.setFillColor(sf::Color::Red);
-                    if (snakeVelocityX != -snakeVelocity) // Check if snake isn't goin the opposite direction so you don't eat yourself
+                    //snake.at(0).setFillColor(sf::Color::Red);
+                    if (snakeVelocityX != -snakeVelocity) // Check if snake.at(0) isn't goin the opposite direction so you don't eat yourself
                     {
                         snakeVelocityX = snakeVelocity;
                         snakeVelocityY = 0.0f;
@@ -137,7 +136,7 @@ int main()
 
                 case (sf::Keyboard::Left):
                 {
-                    //snake.setFillColor(sf::Color::Red);
+                    //snake.at(0).setFillColor(sf::Color::Red);
                     if (snakeVelocityX != snakeVelocity)
                     {
                         snakeVelocityX = -snakeVelocity;
@@ -148,7 +147,7 @@ int main()
 
                 case (sf::Keyboard::Up):
                 {
-                    //snake.setFillColor(sf::Color::Red);
+                    //snake.at(0).setFillColor(sf::Color::Red);
                     if (snakeVelocityY != snakeVelocity)
                     {
                         snakeVelocityX = 0.0f;
@@ -159,7 +158,7 @@ int main()
 
                 case (sf::Keyboard::Down):
                 {
-                    //snake.setFillColor(sf::Color::Red);
+                    //snake.at(0).setFillColor(sf::Color::Red);
                     if (snakeVelocityY != -snakeVelocity)
                     {
                         snakeVelocityX = 0.0f;
@@ -179,22 +178,22 @@ int main()
                 //     {
                 //     case (sf::Keyboard::Right):
                 //     {
-                //             snake.setFillColor(sf::Color::Green);
+                //             snake.at(0).setFillColor(sf::Color::Green);
                 //     }break;
 
                 //     case (sf::Keyboard::Left):
                 //     {
-                //             snake.setFillColor(sf::Color::Green);
+                //             snake.at(0).setFillColor(sf::Color::Green);
                 //     }break;
 
                 //     case (sf::Keyboard::Up):
                 //     {
-                //             snake.setFillColor(sf::Color::Green);
+                //             snake.at(0).setFillColor(sf::Color::Green);
                 //     }break;
 
                 //     case (sf::Keyboard::Down):
                 //     {
-                //             snake.setFillColor(sf::Color::Green);
+                //             snake.at(0).setFillColor(sf::Color::Green);
                 //     }break;
 
                 //     default:
@@ -208,8 +207,10 @@ int main()
         }
 
         rootWin.clear(background);
-        //for (int i = 0; i < snake[])
-        rootWin.draw(snake);
+        for (int i = 0; i < snake.size(); i++)
+        {
+            rootWin.draw(snake.at(i));
+        }
         rootWin.display();
     }
 
