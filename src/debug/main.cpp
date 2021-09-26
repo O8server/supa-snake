@@ -1,10 +1,13 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
+void updateSnake()
+{
+    
+}
+
 int main()
 {
-    int pressed = 0;
-
     sf::RenderWindow rootWin(sf::VideoMode(800, 800), "Poop", sf::Style::Titlebar | sf::Style::Close);
 
     sf::Vector2u oldRootWinSize;
@@ -17,42 +20,54 @@ int main()
 
     sf::Vector2f squareSize = {20.f, 20.f};
 
-    std::vector<sf::RectangleShape> snake = {sf::RectangleShape(squareSize)};
+    std::vector<sf::RectangleShape> snake = {sf::RectangleShape(squareSize), sf::RectangleShape(squareSize), sf::RectangleShape(squareSize)};
 
     //sf::RectangleShape snake[1] = {sf::RectangleShape(squareSize)};
 
     sf::Clock clock;
+    sf::Clock clock1;
 
     sf::Time elapsed;
+    sf::Time elapsedInput;
+
+    sf::Event event;
 
     if (!font.loadFromFile("resources/arial.ttf"))
     {
         std::cout << "Couldn't load font arial.ttf";
     }
 
-    float snakeVelocity = squareSize.x;
     float snakeVelocityX = 0.f;
     float snakeVelocityY = 0.f;
 
-    snake.at(0).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (squareSize.x / 2), (rootWin.getSize().y / 2) - (squareSize.y / 2)));
-    snake.at(0).setFillColor(sf::Color::Green);
+    for (int i = 0; i < snake.size(); i++)
+    {
+        snake.at(i).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (squareSize.x / 2), (rootWin.getSize().y / 2) - (squareSize.y / 2)));
+        snake.at(i).setFillColor(sf::Color::Green);
+    }
+
+    char myDir = 'N';
 
     while (rootWin.isOpen())
     {
+        float snakeVelocity = squareSize.x;
+
         elapsed = clock.getElapsedTime();
+        elapsedInput = clock1.getElapsedTime();
 
         //std::cout << elapsed.asMilliseconds() << "\n";
 
-        if(elapsed.asMilliseconds() >= 80)
-        {
-            snake.at(0).move(snakeVelocityX, snakeVelocityY);
+        if(elapsed.asMilliseconds() >= 100)
+        {           
+            for (int i = 0; i < snake.size(); i++)
+            {
+                snake.at(i).move(snakeVelocityX, snakeVelocityY);
+            }
+
             clock.restart();
         }
 
-        //snake.at(0).move(snakeVelocityX, snakeVelocityY);
-        
-
-        sf::Event event;
+        //snake.at(0).move(snakeVelocityX, snakeVelocityY);       
 
         while (rootWin.pollEvent(event))
         {
@@ -134,10 +149,12 @@ int main()
                 case (sf::Keyboard::Right):
                 {
                     //snake.at(0).setFillColor(sf::Color::Red);
-                    if (snakeVelocityX != -snakeVelocity) // Check if snake.at(0) isn't goin the opposite direction so you don't eat yourself
+                    if ((snakeVelocityX != -snakeVelocity) && (elapsedInput.asMilliseconds() >= 101))// Check if snake.at(0) isn't goin the opposite direction so you don't eat yourself
                     {
                         snakeVelocityX = snakeVelocity;
                         snakeVelocityY = 0.0f;
+                        myDir = 'R';
+                        clock1.restart();
                     }
                 }
                 break;
@@ -145,10 +162,13 @@ int main()
                 case (sf::Keyboard::Left):
                 {
                     //snake.at(0).setFillColor(sf::Color::Red);
-                    if (snakeVelocityX != snakeVelocity)
+                    if (snakeVelocityX != snakeVelocity && (elapsedInput.asMilliseconds() >= 101))
                     {
                         snakeVelocityX = -snakeVelocity;
                         snakeVelocityY = 0.0f;
+                        myDir = 'L';
+                        clock1.restart();
+
                     }
                 }
                 break;
@@ -156,10 +176,13 @@ int main()
                 case (sf::Keyboard::Up):
                 {
                     //snake.at(0).setFillColor(sf::Color::Red);
-                    if (snakeVelocityY != snakeVelocity)
+                    if (snakeVelocityY != snakeVelocity && (elapsedInput.asMilliseconds() >= 101))
                     {
                         snakeVelocityX = 0.0f;
                         snakeVelocityY = -snakeVelocity;
+                        myDir = 'U';
+                        clock1.restart();
+
                     }
                 }
                 break;
@@ -167,10 +190,12 @@ int main()
                 case (sf::Keyboard::Down):
                 {
                     //snake.at(0).setFillColor(sf::Color::Red);
-                    if (snakeVelocityY != -snakeVelocity)
+                    if (snakeVelocityY != -snakeVelocity && (elapsedInput.asMilliseconds() >= 101))
                     {
                         snakeVelocityX = 0.0f;
                         snakeVelocityY = snakeVelocity;
+                        myDir = 'D';
+                        clock1.restart();
                     }
                 }
                 break;
@@ -213,7 +238,8 @@ int main()
                 break;
             }
         }
-
+        
+    
         rootWin.clear(background);
         for (int i = 0; i < snake.size(); i++)
         {
@@ -221,6 +247,5 @@ int main()
         }
         rootWin.display();
     }
-
     return 0;
 }
