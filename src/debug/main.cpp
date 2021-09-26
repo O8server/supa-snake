@@ -3,7 +3,7 @@
 
 void updateSnake()
 {
-    
+    // Define this later
 }
 
 int main()
@@ -20,9 +20,7 @@ int main()
 
     sf::Vector2f squareSize = {20.f, 20.f};
 
-    std::vector<sf::RectangleShape> snake = {sf::RectangleShape(squareSize), sf::RectangleShape(squareSize), sf::RectangleShape(squareSize)};
-
-    //sf::RectangleShape snake[1] = {sf::RectangleShape(squareSize)};
+    //sf::snakeTileShape snake[1] = {sf::snakeTileShape(squareSize)};
 
     sf::Clock clock;
     sf::Clock clock1;
@@ -32,30 +30,62 @@ int main()
 
     sf::Event event;
 
+    // select the font
+    text.setFont(font); // font is a sf::Font
+
+    // set the character size
+    text.setCharacterSize(24); // in pixels, not points!
+
+    // set the color
+    text.setFillColor(sf::Color::Red);
+
+    // Map
+
+
     if (!font.loadFromFile("resources/arial.ttf"))
     {
         std::cout << "Couldn't load font arial.ttf";
     }
+
+    sf::Texture texture;
+    if (!texture.loadFromFile("resources/snaketile.png"))
+    {
+        std::cout << "Couldn't load font texture";
+    }
+
+    sf::Sprite snakeTile;
+    snakeTile.setTexture(texture);
+    std::vector<sf::Sprite> snake = {snakeTile};
+
+    
+
+    float snakeVelocity = 0;
 
     float snakeVelocityX = 0.f;
     float snakeVelocityY = 0.f;
 
     for (int i = 0; i < snake.size(); i++)
     {
-        snake.at(i).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (squareSize.x / 2), (rootWin.getSize().y / 2) - (squareSize.y / 2)));
-        snake.at(i).setFillColor(sf::Color::Green);
+        snake.at(i).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (snake[i].getTexture()->getSize().x / 2), (rootWin.getSize().y / 2) - (snake[i].getTexture()->getSize().y / 2)));
     }
 
     char myDir = 'N';
 
     while (rootWin.isOpen())
     {
-        float snakeVelocity = squareSize.x;
+        // std::cout << texture.getSize().x;
+        // std::cout << texture.getSize().y;
+
+        text.setString("Snake size: " + std::to_string(snake.size()));
 
         elapsed = clock.getElapsedTime();
         elapsedInput = clock1.getElapsedTime();
 
         //std::cout << elapsed.asMilliseconds() << "\n";
+        for (int i = 0; i < snake.size(); i++)
+        {
+            snakeVelocity = snake[i].getTexture()->getSize().x;
+        }
 
         if(elapsed.asMilliseconds() >= 100)
         {           
@@ -121,28 +151,34 @@ int main()
 
                 case (sf::Keyboard::C):
                 {
-                    snake.at(0).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (squareSize.x / 2), (rootWin.getSize().y / 2) - (squareSize.y / 2)));
+                    snake.at(0).setPosition(sf::Vector2f((rootWin.getSize().x / 2) - (snake[0].getTexture()->getSize().x / 2), (rootWin.getSize().y / 2) - (snake[0].getTexture()->getSize().y / 2)));
                 }
                 break;
 
-                case (sf::Keyboard::Space):
+                // case (sf::Keyboard::Space):
+                // {
+                //     snake[0].getTexture()->getSize().x += 1;
+                //     snake[0].getTexture()->getSize().y += 1;
+
+                //     snake.at(0).setSize(squareSize);
+                // }
+                // break;
+
+                // case (sf::Keyboard::Backspace):
+                // {
+                //     if (snake[0].getTexture()->getSize().x > 0 || snake[0].getTexture()->getSize().y > 0)
+                //     {
+                //         snake[0].getTexture()->getSize().x -= 1;
+                //         snake[0].getTexture()->getSize().y -= 1;
+                //     }
+
+                //     snake.at(0).setSize(squareSize);
+                // }
+                // break;
+
+                case (sf::Keyboard::Enter):
                 {
-                    squareSize.x += 1;
-                    squareSize.y += 1;
-
-                    snake.at(0).setSize(squareSize);
-                }
-                break;
-
-                case (sf::Keyboard::Backspace):
-                {
-                    if (squareSize.x > 0 || squareSize.y > 0)
-                    {
-                        squareSize.x -= 1;
-                        squareSize.y -= 1;
-                    }
-
-                    snake.at(0).setSize(squareSize);
+                    snake.push_back(snakeTile);
                 }
                 break;
 
@@ -245,6 +281,7 @@ int main()
         {
             rootWin.draw(snake.at(i));
         }
+        rootWin.draw(text);
         rootWin.display();
     }
     return 0;
