@@ -104,6 +104,8 @@ int main()
 
     snake.at(0).setPosition(map[1][1].getPosition());
 
+    int snakeMoveDelay = 200; 
+
     char myDir = 'N';
 
     while (rootWin.isOpen())
@@ -128,7 +130,7 @@ int main()
             snakeVelocity = snake[i].getTexture()->getSize().x;
         }
 
-        if (elapsed.asMilliseconds() >= 200)
+        if (elapsed.asMilliseconds() >= snakeMoveDelay)
         {
 
             for (int i = 0; i < snake.size(); i++)
@@ -228,12 +230,12 @@ int main()
 
                 case (sf::Keyboard::Enter):
                 {
-                    if ((elapsedInput.asMilliseconds() >= 200))
-                    {
-                        snake.push_back(snakeTile);
-                        snake.at(snake.size() - 1).setPosition(snake.at(0).getPosition());
-                        clock1.restart();
-                    }
+                    // if ((elapsedInput.asMilliseconds() >= snakeMoveDelay))
+                    // {
+                    snake.push_back(snakeTile);
+                    snake.at(snake.size() - 1).setPosition(snake.at(0).getPosition());
+                        //clock1.restart();
+                    // 
                 }
                 break;
 
