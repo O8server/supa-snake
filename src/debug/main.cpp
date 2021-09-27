@@ -1,5 +1,8 @@
 #include <iostream>
+#include <random>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+
 
 void updateSnake()
 {
@@ -8,6 +11,8 @@ void updateSnake()
 
 int main()
 {
+    bool gameOver = false;
+
     sf::RenderWindow rootWin(sf::VideoMode(800, 800), "Poop", sf::Style::Titlebar | sf::Style::Close);
 
     sf::Vector2u oldRootWinSize;
@@ -18,8 +23,6 @@ int main()
 
     sf::Text text;
 
-    sf::Vector2f squareSize = {20.f, 20.f};
-
     //sf::snakeTileShape snake[1] = {sf::snakeTileShape(squareSize)};
 
     sf::Clock clock;
@@ -29,6 +32,12 @@ int main()
     sf::Time elapsedInput;
 
     sf::Event event;
+
+    sf::SoundBuffer buffer;
+
+    sf::Sound gwa;
+
+    sf::Music music;
 
     // select the font
     text.setFont(font); // font is a sf::Font
@@ -52,20 +61,36 @@ int main()
         for (int y = 0; y < mapHeight; y++)
         {
             map[x][y].setSize(mapTileSize);
-            map[x][y].setOutlineThickness(1.f);
-            map[x][y].setOutlineColor(sf::Color(0, 0, 0));
             map[x][y].setPosition(sf::Vector2f(((rootWin.getSize().x / 2) - (mapWidth * mapTileSize.x / 2)) + (x * mapTileSize.x), (((rootWin.getSize().y / 2) - (mapHeight * mapTileSize.y / 2))) + (y * mapTileSize.y)));
+            map[x][y].setFillColor(sf::Color::Transparent);
 
-            //walls
-            map[0][y].setFillColor(sf::Color::Red);
-            map[x][0].setFillColor(sf::Color::Red);
-            map[mapWidth - 1][y].setFillColor(sf::Color::Red);
-            map[x][mapHeight - 1].setFillColor(sf::Color::Red);
+            // Show grid (tile outlines)
+            // map[x][y].setOutlineThickness(1.f);
+            // map[x][y].setOutlineColor(sf::Color(0, 0, 0));
+        }
+    }
+    // Wall colors
+    for (int x = 0; x < (mapWidth - mapWidth / 2); x++)
+    {
+        for (int y = 0; y < (mapHeight - mapHeight / 2); y++)
+        {
+            map[mapWidth - 1][y + y].setFillColor(sf::Color::Yellow);
+            map[mapWidth - 1][y + y + 1].setFillColor(sf::Color::Black);
+            map[x + x][mapHeight - 1].setFillColor(sf::Color::Yellow);
+            map[x + x + 1][mapHeight - 1].setFillColor(sf::Color::Black);
+
+            map[0][y + y].setFillColor(sf::Color::Black);
+            map[0][y + y + 1].setFillColor(sf::Color::Yellow);
+            map[x + x][0].setFillColor(sf::Color::Black);
+            map[x + x + 1][0].setFillColor(sf::Color::Yellow);
         }
     }
 
     int headPosX = 0;
     int headPosY = 0;
+
+    int applePosX = 0;
+    int applePosY = 0;
 
     //set walls
     // for(int x = 0; x < mapWidth; x++)
@@ -76,6 +101,16 @@ int main()
     //     }
     // }
 
+    if (!music.openFromFile("resources/ZULUL.wav"))
+    return -1; // error
+    music.play();
+
+    if (!buffer.loadFromFile("resources/gwa.wav"))
+    {
+        std::cout << "Couldn't play gwa.wav";
+        return -1;
+    }
+
     if (!font.loadFromFile("resources/arial.ttf"))
     {
         std::cout << "Couldn't load font arial.ttf";
@@ -84,12 +119,50 @@ int main()
     sf::Texture texture;
     if (!texture.loadFromFile("resources/snaketile.png"))
     {
-        std::cout << "Couldn't load font texture";
+        std::cout << "Couldn't load snaketile.png";
     }
+
+    sf::Texture appleTexture;
+    if (!appleTexture.loadFromFile("resources/zulul.png"))
+    {
+        std::cout << "Couldn't load font zulul.png";
+    }
+
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("resources/forsenLevel2.png"))
+    {
+        std::cout << "Couldn't load font metal.png";
+    }
+
+    sf::Texture pagman;
+    if (!pagman.loadFromFile("resources/pagman.png"))
+    {
+        std::cout << "Couldn't load font pagman.png";
+    }
+
+    sf::Texture gameOverTexture;
+    if (!gameOverTexture.loadFromFile("resources/gameover.jpeg"))
+    {
+        std::cout << "Couldn't load font gameover.jpeg";
+    }
+
+    sf::RectangleShape gameOverImage(sf::Vector2f(rootWin.getSize().x, rootWin.getSize().y));
+    gameOverImage.setTexture(&gameOverTexture);
+    gameOverImage.setFillColor(sf::Color::Transparent);
+
+    sf::RectangleShape backgroundMap(sf::Vector2f(mapTileSize.x * mapWidth - mapTileSize.x * 2, mapTileSize.y * mapHeight - mapTileSize.y * 2));
+    backgroundMap.setTexture(&backgroundTexture);
+    backgroundMap.setPosition(map[0][0].getPosition().x + mapTileSize.x * 1, map[0][0].getPosition().y + mapTileSize.y * 1);
+
+    sf::RectangleShape apple(mapTileSize);
+    std::vector <sf::RectangleShape> apples {apple};
+    apples.at(0).setTexture(&appleTexture);
 
     sf::Sprite snakeTile;
     snakeTile.setTexture(texture);
     std::vector<sf::Sprite> snake = {snakeTile};
+
+    snake.at(0).setTexture(pagman);
 
     float snakeVelocity = 0;
 
@@ -104,17 +177,57 @@ int main()
 
     snake.at(0).setPosition(map[1][1].getPosition());
 
-    int snakeMoveDelay = 200; 
+    int snakeMoveDelay = 200;
 
     char myDir = 'N';
 
+    // Set random apple position
+    apples.at(0).setPosition(map[0][0].getPosition().x + 4 * mapTileSize.x, map[0][0].getPosition().y + 4 * mapTileSize.y);
+
     while (rootWin.isOpen())
     {
+        if(gameOver)
+        {
+            gameOverImage.setFillColor(sf::Color::White);
+        }
+
         headPosX = (snake.at(0).getPosition().x - map[0][0].getPosition().x) / mapTileSize.x;
         headPosY = (snake.at(0).getPosition().y - map[0][0].getPosition().y) / mapTileSize.y;
 
-        // std::cout << "X: " << headPosX << "\n";
-        // std::cout << "Y: " << headPosY << "\n";
+        applePosX = (apples.at(0).getPosition().x - map[0][0].getPosition().x) / mapTileSize.x;
+        applePosY = (apples.at(0).getPosition().y - map[0][0].getPosition().y) / mapTileSize.y;
+
+        //colission checks
+        if (headPosX <= 0 || headPosX >= (mapWidth - 1) || headPosY <= 0 || headPosY >= (mapHeight - 1))
+        {
+            snakeVelocityX = 0;
+            snakeVelocityY = 0;
+            gameOver = true;
+        }
+
+        if (headPosX == applePosX && headPosY == applePosY)
+        {
+            
+            //Play sound
+            gwa.setBuffer(buffer);
+            gwa.play();
+
+            snake.push_back(snakeTile);
+            snake.at(snake.size() - 1).setPosition(snake.at(0).getPosition());
+            apples.pop_back();
+            apples.push_back(apple);
+            apples.at(0).setTexture(&appleTexture); // Reaply texture because the apple is a new element in the vector
+            //generate random numbers
+            std::random_device rd; // obtain a random number from hardware
+            std::mt19937 gen(rd()); // seed the generator
+            std::uniform_int_distribution<> distrX(1, mapWidth - 2); // define the range
+            std::uniform_int_distribution<> distrY(1, mapHeight - 2); // define the range
+
+            apples.at(0).setPosition(map[0][0].getPosition().x + distrX(gen) * mapTileSize.x, map[0][0].getPosition().y + distrY(gen) * mapTileSize.y);
+        }
+
+        // std::cout << "X: " << applePosX << "\n";
+        // std::cout << "Y: " << applePosY << "\n";
 
         // std::cout << texture.getSize().x;
         // std::cout << texture.getSize().y;
@@ -202,6 +315,8 @@ int main()
                     snake.at(0).setPosition(map[1][1].getPosition());
                     snakeVelocityX = 0;
                     snakeVelocityY = 0;
+                    gameOver = false;
+                    gameOverImage.setFillColor(sf::Color::Transparent);
                 }
                 break;
 
@@ -234,8 +349,8 @@ int main()
                     // {
                     snake.push_back(snakeTile);
                     snake.at(snake.size() - 1).setPosition(snake.at(0).getPosition());
-                        //clock1.restart();
-                    // 
+                    //clock1.restart();
+                    //
                 }
                 break;
 
@@ -332,6 +447,8 @@ int main()
 
         rootWin.clear(background);
 
+        rootWin.draw(backgroundMap);
+
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
@@ -340,12 +457,17 @@ int main()
             }
         }
 
+        rootWin.draw(apples.at(0));
+
         for (int i = 0; i < snake.size(); i++)
         {
             rootWin.draw(snake.at(i));
         }
 
         rootWin.draw(text);
+
+        rootWin.draw(gameOverImage);
+
         rootWin.display();
     }
     return 0;
